@@ -78,6 +78,7 @@ if count(g:bundle_groups, 'base')
     Plug 'rking/ag.vim'
     Plug 'w0rp/ale'
     Plug 'roxma/vim-paste-easy'
+    Plug 'derekwyatt/vim-fswitch'
 endif
 
 " powerful code-completion engine
@@ -282,3 +283,15 @@ autocmd FileType * if index(ale_blacklist, &ft) < 0 | nmap <silent> ]l <Plug>(al
 " ------------------'Plug roxma/vim-paste-easyi'------------------------------
 " 不显示paste模式切换信息
 let g:paste_easy_message = 0
+
+" ------------------Plug 'derekwyatt/vim-fswitch'-----------------------------
+" 切换快捷键
+nmap <silent> <Leader>a :FSHere<cr>
+augroup fswitch_cpp
+    " 支持cc结尾的文件
+    au!
+    au BufEnter *.cc let b:fswitchdst  = 'h'
+    au BufEnter *.cc let b:fswitchlocs = 'reg:/src/include/,reg:|src|include/**|,../include'
+    au BufEnter *.h let b:fswitchdst  = 'cpp,cc,C'
+    au BufEnter *.h let b:fswitchlocs = 'reg:/include/src/,reg:/include.*/src/'
+augroup END
