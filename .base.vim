@@ -21,6 +21,8 @@ endif
 "set cursorcolumn
 "hi CursorColumn cterm=NONE ctermbg=darkred ctermfg=white guibg=darkred guifg=white
 
+" 启动的时候不显示那个援助乌干达儿童的提示
+set shortmess=atI	
 
 "高亮光标所在的行
 set cul
