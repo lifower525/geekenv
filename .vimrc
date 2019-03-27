@@ -53,15 +53,11 @@ endif
 
 call InstallAirLineFont()
 
-" 映射快捷键前缀
-let mapleader="\<Space>"
-
 "-------------------------------插件安装和管理----------------------------
 call plug#begin('~/.vim/bundle')
 
 if count(g:bundle_groups, 'base')
     Plug 'junegunn/vim-plug'
-    Plug 'altercation/vim-colors-solarized'
     Plug 'flazz/vim-colorschemes'
     Plug 'easymotion/vim-easymotion'
     Plug 'scrooloose/nerdtree'
@@ -79,6 +75,12 @@ if count(g:bundle_groups, 'base')
     Plug 'w0rp/ale'
     Plug 'roxma/vim-paste-easy'
     Plug 'derekwyatt/vim-fswitch'
+    Plug 'kshenoy/vim-signature'
+    Plug 'kien/rainbow_parentheses.vim'
+    Plug 'jiangmiao/auto-pairs'
+    " Plug 'ddollar/nerdcommenter'
+    Plug 'chiel92/vim-autoformat'
+    Plug 'airblade/vim-gitgutter'
 endif
 
 " powerful code-completion engine
@@ -101,6 +103,7 @@ endif
 if count(g:bundle_groups, 'cpp')
     " cpp highlight
     Plug 'octol/vim-cpp-enhanced-highlight'
+    "Plug 'bfrg/vim-cpp-modern'
 endif
 
 " builty vim, require terminal font DroidSansMono Nerd\ Font\ 11
@@ -110,6 +113,47 @@ if exists("s:builty_vim")  && s:builty_vim == 1
     " toc tree show file type icons
     Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
 endif  "s:builty_vim
+
+if count(g:bundle_groups, 'thrift')
+    " thrift highlight
+    Plug 'solarnz/thrift.vim'
+endif
+
+if count(g:bundle_groups, 'shell')
+    " shell highlight
+    Plug 'Shougo/vimshell.vim'
+endif
+
+if count(g:bundle_groups, 'protobuf')
+    " protobuf highlight
+    Plug 'uarun/vim-protobuf'
+endif
+
+if count(g:bundle_groups, 'python')
+    " PyLint, Rope, Pydoc, breakpoints from box
+"    Plug 'python-mode/python-mode'
+endif
+
+if count(g:bundle_groups, 'markdown')
+    " markdown highlight
+    Plug 'godlygeek/tabular'
+    Plug 'plasticboy/vim-markdown'
+    " markdown preview
+    Plug 'iamcco/markdown-preview.vim'
+    " markdown mathjax preview
+    Plug 'iamcco/mathjax-support-for-mkdp'
+endif
+
+if count(g:bundle_groups, 'json')
+    " json highlight
+    Plug 'elzr/vim-json'
+endif
+
+if count(g:bundle_groups, 'c') || count(g:bundle_groups, 'cpp') || count(g:bundle_groups, 'java')
+    " async generate and update ctags/gtags
+    Plug 'ludovicchabant/vim-gutentags'
+    Plug 'skywind3000/gutentags_plus'
+endif
 
 call plug#end()
 
@@ -161,9 +205,9 @@ let g:NERDTreeHighlightCursorline = 0
 " autocmd vimenter * NERDTree
 autocmd StdinReadPre * let s:std_in=1
 " open a NERDTree automatically when vim starts up if no files were specified
-autocmd VimEnter * if argc() == 0 && !exists("s:std_in") && winnr('$') < 2 | NERDTree | endif
+" autocmd VimEnter * if argc() == 0 && !exists("s:std_in") && winnr('$') < 2 | NERDTree | endif
 " open NERDTree automatically when vim starts up on opening a directory
-autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | endif
+" autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | endif
 " close vim if the only window left open is a NERDTree
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 
@@ -265,6 +309,10 @@ set foldlevel=99
 " -------------Plug 'haya14busa/incsearch.vim'------------------------
 " 高亮匹配字符
 set incsearch
+" incsearch
+map /  <Plug>(incsearch-forward)
+map ?  <Plug>(incsearch-backward)
+map g/ <Plug>(incsearch-stay)
 
 " ---------------Plug 'w0rp/ale' ---------------------------------------
 " 在airline显示ale的状态
@@ -295,3 +343,87 @@ augroup fswitch_cpp
     au BufEnter *.h let b:fswitchdst  = 'cpp,cc,C'
     au BufEnter *.h let b:fswitchlocs = 'reg:/include/src/,reg:/include.*/src/'
 augroup END
+
+" ------------Plug 'kshenoy/vim-signature'---------------------
+" 高亮显示标记
+let g:SignatureMarkTextHLDynamic=1
+let g:SignatureMarkerTextHLDynamic=1
+" 删除所有标记时需要确认
+let g:SignaturePurgeConfirmation=1
+" 常用默认快捷键
+" m.        当前行没有标记时，使用下一个不冲突的字母放置标记，当前行有标记时，删除标记
+" m<Space>  删除当前文件所有标记
+" ]`        跳转到下一个标记位置
+" [`        跳转到上一个标记位置
+
+" 注释符号后自动添加空格分隔符
+let NERDSpaceDelims=0
+" 常用默认快捷键，visaul模式使用，对选中的文本生效
+" 用行注释(如//)符注释/取消注释
+" <leader>cm |NERDComMinimalComment| 使用块注释符(如/**/)注释
+" <leader>cm |NERDComToggleComment| 使用行注释符(如//)注释
+
+" ----------------Plug 'chiel92/vim-autoformat'-----------------
+" Normal模式对整个文件格式化
+nmap <leader>i :Autoformat<CR>
+" Visual模式对选定的文本格式化
+vmap <leader>i :Autoformat<CR>
+" 更改python默认的格式化工具
+let g:formatters_python = ["yapf","autopep8"]
+
+
+" ----------------Plug 'bfrg/vim-cpp-modern'--------------------
+let g:cpp_named_requirements_highlight = 1
+
+
+" ------------------Plug 'ludovicchabant/vim-gutentags' --------------
+" ------------------Plug 'skywind3000/gutentags_plus' ----------------
+" 禁用默认快捷键
+let g:gutentags_plus_nomap = 1
+" 自动切换到quickfix窗口
+let g:gutentags_plus_switch = 1
+" 查找符号
+noremap <silent> <leader>gs :GscopeFind s <C-R><C-W><cr>
+" 查找定义
+noremap <silent> <leader>gg :GscopeFind g <C-R><C-W><cr>
+" 查找调用者
+noremap <silent> <leader>gc :GscopeFind c <C-R><C-W><cr>
+" 查找字符串
+noremap <silent> <leader>gt :GscopeFind t <C-R><C-W><cr>
+" 按照egrep规则从标签中查找
+noremap <silent> <leader>ge :GscopeFind e <C-R><C-W><cr>
+" 查找文件
+noremap <silent> <leader>gf :GscopeFind f <C-R>=expand("<cfile>")<cr><cr>
+" 查看include当前文件的文件
+noremap <silent> <leader>gi :GscopeFind i <C-R>=expand("<cfile>")<cr><cr>
+" 查找当前函数调用的函数
+noremap <silent> <leader>gd :GscopeFind d <C-R><C-W><cr>
+" 查找当前符号赋值位置
+noremap <silent> <leader>ga :GscopeFind a <C-R><C-W><cr>
+" 设定项目根目录额外标志：除了 .git/.svn 外，还有 .root 文件
+let g:gutentags_project_root = ['.root']
+" 默认生成的数据文件集中到 ~/.cache/tags 避免污染项目目录
+let g:gutentags_cache_dir = expand('~/.cache/tags')
+" 追踪链接
+let g:gutentags_resolve_symlinks = 1
+" 默认禁用自动生成
+let g:gutentags_modules = []
+" 优先使用gnu global(gtags)，若没有gtags，使用ctags
+if executable('gtags') && executable('gtags-cscope')
+    let g:gutentags_modules += ['gtags_cscope']
+elseif executable('ctags')
+    " 如果有 ctags 可执行就允许动态生成 ctags 文件
+    let g:gutentags_modules += ['ctags']
+endif
+" 设置 ctags 的参数
+let g:gutentags_ctags_tagfile = '.tags'
+let g:gutentags_ctags_extra_args = []
+let g:gutentags_ctags_extra_args = ['--fields=+niaztKS', '--extra=+qf']
+let g:gutentags_ctags_extra_args += ['--c++-kinds=+px']
+let g:gutentags_ctags_extra_args += ['--c-kinds=+px']
+" 禁用 gutentags 自动加载 gtags 数据库的行为
+" 避免多个项目数据库相互干扰,由gutentags_plus自动切换
+let g:gutentags_auto_add_gtags_cscope = 0
+" 手动更新tag快捷键
+let g:gutentags_define_advanced_commands = 1
+nmap <leader>u :GutentagsUpdate! <CR><CR>
