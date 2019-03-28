@@ -65,6 +65,9 @@ set number
 "设置历史记录条数
 set history=50
 
+"禁止生产临时文件
+set nobackup
+
 "设置自动写回文件
 "自动把内容写回文件: 如文件被修改过，在每个 :next、:rewind、:last、:first、:previous、:stop、:suspend、
 ":tag、:!、:make、CTRL-]" 和 CTRL-^命令时进行；
