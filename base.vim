@@ -22,20 +22,20 @@ endif
 "hi CursorColumn cterm=NONE ctermbg=darkred ctermfg=white guibg=darkred guifg=white
 
 " 启动的时候不显示那个援助乌干达儿童的提示
-set shortmess=atI	
+set shortmess=atI
 
 "高亮光标所在的行
-set cul
+"set cul
 
 " 搜索时高亮显示被找到的文本
 set hlsearch
 
-" 显示最后一次匹配的结果 
+" 显示最后一次匹配的结果
 set showmatch
 
 "用浅色高亮当前行
 "autocmd InsertEnter * se cul
-hi CursorLine   ctermbg=blue ctermfg=white guibg=blue guifg=white
+"hi CursorLine   ctermbg=blue ctermfg=white guibg=blue guifg=white
 
 "设置行间隔
 set linespace=0
@@ -86,6 +86,8 @@ colorscheme molokai_dark
 
 set t_Co=256
 
+highlight Visual cterm=NONE ctermbg=24 ctermfg=None guibg=olivedrab
+
 "设置字体
 set guifont=Consolas\ 28
 
@@ -128,6 +130,9 @@ set ignorecase
 " 映射快捷键前缀
 let mapleader="\<Space>"
 
+" 关闭 swap 文件
+set noswapfile
+
 " Fast saving
 nmap <leader>w :w!<cr>
 
@@ -142,3 +147,6 @@ map <C-l> <C-W>l
 
 map <leader>te :tabedit <c-r>=expand("%:p:h")<cr>/
 map <leader>e :e <c-r>=expand("%:p:h")<cr>/
+
+" 映射快捷更新键
+nmap <leader>w :update<CR>

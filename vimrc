@@ -51,6 +51,23 @@ if empty(glob('~/.vim/autoload/plug.vim'))
     call InstallAirLineFont()
 endif
 
+" system clipboard
+if exists("s:enable_system_clipboard")  && s:enable_system_clipboard == 1
+    vmap <leader>y "+y
+    vmap <leader>d "+d
+    nmap <leader>p "+p
+    nmap <leader>P "+P
+    vmap <leader>p "+p
+    vmap <leader>P "+P
+else
+    vmap <leader>y "py
+    vmap <leader>d "pd
+    nmap <leader>p "pp
+    nmap <leader>P "pP
+    vmap <leader>p "pp
+    vmap <leader>P "pP
+endif  "s:enable_system_clipboard
+
 call InstallAirLineFont()
 
 "-------------------------------插件安装和管理----------------------------
@@ -71,6 +88,7 @@ if count(g:bundle_groups, 'base')
     Plug 'shougo/echodoc'
     Plug 'yggdroot/indentline'
     Plug 'haya14busa/incsearch.vim'
+    Plug 'haya14busa/incsearch-fuzzy.vim'
     Plug 'rking/ag.vim'
     Plug 'w0rp/ale'
     Plug 'roxma/vim-paste-easy'
@@ -81,6 +99,11 @@ if count(g:bundle_groups, 'base')
     " Plug 'ddollar/nerdcommenter'
     Plug 'chiel92/vim-autoformat'
     Plug 'airblade/vim-gitgutter'
+    Plug 'roman/golden-ratio'
+    Plug 'ervandew/supertab'
+    Plug 'alpertuna/vim-header'
+    Plug 'bitc/vim-bad-whitespace'
+    Plug 'terryma/vim-expand-region'
 endif
 
 " powerful code-completion engine
@@ -131,7 +154,7 @@ endif
 
 if count(g:bundle_groups, 'python')
     " PyLint, Rope, Pydoc, breakpoints from box
-"    Plug 'python-mode/python-mode'
+    Plug 'python-mode/python-mode'
 endif
 
 if count(g:bundle_groups, 'markdown')
@@ -159,6 +182,20 @@ call plug#end()
 
 " 引入基本配置文件
 source ~/.base.vim
+
+set runtimepath^=~/.vim/bundle/ag
+
+" ------------------Plug 'bitc/vim-bad-whitespace' ----------------
+" 默认关闭可打印字符的显示
+set nolist
+" F3 显示可打印字符开关
+nnoremap <F3> :set list! list?<CR>
+" 可打印字符显示方式
+set listchars=eol:$,tab:^I,space:.
+
+" ------------------Plug 'roman/golden-ratio' ----------------
+let g:golden_ratio_exclude_nonmodifiable = 1
+let g:loaded_golden_ratio = 0
 
 " ------------------Plug 'octol/vim-cpp-enhanced-highlight'----------------
 "高亮类，成员函数，标准库和模板
@@ -235,6 +272,11 @@ if exists("s:enable_ycm")  && s:enable_ycm == 1
     let g:EclimFileTypeValidate = 0
     " YCM will populate the location list automatically every time it gets new diagnostic data
     let g:ycm_always_populate_location_list = 0
+    "autocmd CursorMovedI * if pumvisible() == 0|pclose|endif
+    "autocmd InsertLeave * if pumvisible() == 0|pclose|endif
+    "set proview windows close
+    set completeopt=menu,menuone
+    let g:ycm_add_preview_to_completeopt = 0
     " goto next location list
     autocmd FileType c,cpp,java nmap [l :lnext<CR>
     " goto previous location list
@@ -314,11 +356,17 @@ map /  <Plug>(incsearch-forward)
 map ?  <Plug>(incsearch-backward)
 map g/ <Plug>(incsearch-stay)
 
+" ------------------Plug 'haya14busa/incsearch-fuzzy.vim' ----------------
+" 模糊搜索
+map z/ <Plug>(incsearch-fuzzy-/)
+map z? <Plug>(incsearch-fuzzy-?)
+map zg/ <Plug>(incsearch-fuzzy-stay)
+
 " ---------------Plug 'w0rp/ale' ---------------------------------------
 " 在airline显示ale的状态
 let g:airline#extensions#ale#enabled = 1
 " 自动打开错误列表
-let g:ale_open_list = 1
+let g:ale_open_list = 0
 " 对YouCompleteMe插件支持较好的语言不使用
 let g:ale_linters = {'c': [], 'cpp': [], 'java': []}
 autocmd FileType c,cpp,java  setl fdm=syntax | setl fen
@@ -427,3 +475,36 @@ let g:gutentags_auto_add_gtags_cscope = 0
 " 手动更新tag快捷键
 let g:gutentags_define_advanced_commands = 1
 nmap <leader>u :GutentagsUpdate! <CR><CR>
+
+
+
+" ------------------Plug 'alpertuna/vim-header' ----------------
+let g:header_field_filename = 1
+let g:header_field_author = 'Howie Lee'
+let g:header_field_author_email = 'lifower525@google.com'
+let g:header_auto_add_header = 0
+let g:header_auto_update_header = 1
+let g:header_field_timestamp_format = '%Y-%m-%d %H:%M:%S'
+let g:header_field_copyright = 'Copyright (c) 2019 Inc. All rights reserved.'
+let g:header_alignment = 1
+let g:header_max_size = 20
+let g:header_field_modified_timestamp = 0
+let g:header_field_modified_by = 0
+
+" ------------------Plug 'terryma/vim-expand-region' ----------------
+" v选择下个单词/段落 ctrl-v回退选择
+vmap v <Plug>(expand_region_expand)
+vmap <C-v> <Plug>(expand_region_shrink)
+
+" vim for python
+" python-syntax
+let python_highlight_all = 1
+
+" pymode
+let g:pymode_folding = 0
+let g:pymode_rope_completion = 0
+let g:pymode_lint_signs = 0
+let g:pymode_lint = 0
+let g:pymode_rope = 0
+let g:pymode_lint_cwindow = 0
+
