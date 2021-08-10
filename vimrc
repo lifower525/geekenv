@@ -3,7 +3,8 @@ if !exists('g:bundle_groups')
     let g:bundle_groups=['base', 'python', 'c', 'cpp', 'markdown', 'json', 'shell', 'protobuf', 'thrift']
 endif
 let s:builty_vim = 1
-let s:enable_ycm = 1
+let s:enable_ycm = 0
+let s:enable_coc = 1
 
 " 使用系统剪切板
 if has('clipboard') && !empty($DISPLAY)
@@ -11,6 +12,7 @@ if has('clipboard') && !empty($DISPLAY)
 else
     let s:enable_system_clipboard = 0
 endif
+
 
 " 检测本机系统是windows、Linux or masOS
 if !exists("s:os")
@@ -51,23 +53,6 @@ if empty(glob('~/.vim/autoload/plug.vim'))
     call InstallAirLineFont()
 endif
 
-" system clipboard
-if exists("s:enable_system_clipboard")  && s:enable_system_clipboard == 1
-    vmap <leader>y "+y
-    vmap <leader>d "+d
-    nmap <leader>p "+p
-    nmap <leader>P "+P
-    vmap <leader>p "+p
-    vmap <leader>P "+P
-else
-    vmap <leader>y "py
-    vmap <leader>d "pd
-    nmap <leader>p "pp
-    nmap <leader>P "pP
-    vmap <leader>p "pp
-    vmap <leader>P "pP
-endif  "s:enable_system_clipboard
-
 call InstallAirLineFont()
 
 "-------------------------------插件安装和管理----------------------------
@@ -90,7 +75,7 @@ if count(g:bundle_groups, 'base')
     Plug 'haya14busa/incsearch.vim'
     Plug 'haya14busa/incsearch-fuzzy.vim'
     Plug 'rking/ag.vim'
-    Plug 'w0rp/ale'
+    "Plug 'w0rp/ale'
     Plug 'roxma/vim-paste-easy'
     Plug 'derekwyatt/vim-fswitch'
     Plug 'kshenoy/vim-signature'
@@ -98,35 +83,56 @@ if count(g:bundle_groups, 'base')
     Plug 'jiangmiao/auto-pairs'
     " Plug 'ddollar/nerdcommenter'
     Plug 'chiel92/vim-autoformat'
-    Plug 'airblade/vim-gitgutter'
+    "Plug 'airblade/vim-gitgutter'
     Plug 'roman/golden-ratio'
     Plug 'ervandew/supertab'
     Plug 'alpertuna/vim-header'
     Plug 'bitc/vim-bad-whitespace'
     Plug 'terryma/vim-expand-region'
+    if exists("s:enable_coc")  && s:enable_coc == 1
+    else
+        " show a git diff in the gutter (sign column) and stages/undoes hunks
+        " can be replace by coc-git
+        Plug 'airblade/vim-gitgutter'
+        " asynchronous lint engine
+        Plug 'dense-analysis/ale'
+    endif
 endif
 
 " powerful code-completion engine
 if exists("s:enable_ycm")  && s:enable_ycm == 1
     let s:is_system_clang = 0
     if s:os == "Linux"
-        let s:is_libclang7_install=str2nr(system('ldconfig -p | grep "libclang-[789].so" | wc -l'))
-        let s:is_libclang7_install+=str2nr(system('strings `ldconfig -p | grep "libclang.so$" | awk -F" "' . " '" . '{print $NF}'. "'" . '` | grep "version [789].[0-9].[0-9]" | wc -l'))
-        if s:is_libclang7_install > 0
+        let s:is_libclang1x_install=str2nr(system('ldconfig -p | egrep "libclang-1[0-9].so" | wc -l'))
+        let s:is_libclang1x_install+=str2nr(system('strings `ldconfig -p | grep "libclang.so$" | awk -F" "' . " '" . '{print $NF}'. "'" . '` | egrep "version 1[0-9].[0-9].[0-9]" | wc -l'))
+        if s:is_libclang1x_install > 0
             let s:is_system_clang = 1
         endif
     endif
-    if s:is_system_clang
-        Plug 'valloric/youcompleteme', { 'do': './install.py --clang-completer --system-libclang --java-completer' }
-    else
-        Plug 'valloric/youcompleteme', { 'do': './install.py --clang-completer --java-completer' }
-    endif
+endif
+
+if exists("s:enable_coc")  && s:enable_coc == 1
+    Plug 'neoclide/coc.nvim', {'branch': 'release'}
 endif
 
 if count(g:bundle_groups, 'cpp')
     " cpp highlight
-    Plug 'octol/vim-cpp-enhanced-highlight'
-    "Plug 'bfrg/vim-cpp-modern'
+    if exists("s:enable_coc")  && s:enable_coc == 1
+        Plug 'jackguo380/vim-lsp-cxx-highlight'
+        " highlight LspCxxHlSymClassProperty ctermfg=DarkGray guifg=DarkGray
+        " highlight LspCxxHlSymStructProperty ctermfg=DarkGray guifg=DarkGray
+        " highlight LspCxxHlSymClassProperty ctermfg=DarkGray guifg=DarkGray
+        " highlight LspCxxHlSymStructProperty ctermfg=DarkGray guifg=DarkGray
+    elseif exists("s:cpp_clang_highlight")  && s:cpp_clang_highlight == 1
+        if s:is_system_clang
+            Plug 'jeaye/color_coded', {'do': 'dir=`mktemp -d` && cd $dir && cmake -DDOWNLOAD_CLANG=0 ~/.vim/bundle/color_coded/ && make && make install'}
+        else
+            Plug 'jeaye/color_coded', {'do': 'dir=`mktemp -d` && cd $dir && cmake ~/.vim/bundle/color_coded/ && make && make install'}
+        endif
+    else
+        Plug 'bfrg/vim-cpp-modern'
+    endif
+    Plug 'bfrg/vim-cpp-modern'
 endif
 
 " builty vim, require terminal font DroidSansMono Nerd\ Font\ 11
@@ -225,6 +231,12 @@ omap s <Plug>(easymotion-bd-f)
 map <Leader>j <Plug>(easymotion-j)
 map <Leader>k <Plug>(easymotion-k)
 
+" ---------------------Plug 'python-mode/python-mode'---------------------
+let g:pymode_breakpoint = 0
+let g:pymode_breakpoint_bind = '<leader>pb'
+let g:pymode_run = 0
+let g:pymode_run_bind = '<leader>pr'
+
 " ----------------------Plug 'scrooloose/nerdtree'--------------------------------
 nmap <leader>4 :NERDTreeToggle<CR>
 nmap <leader>5 :NERDTreeFind<CR>
@@ -250,49 +262,181 @@ autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isT
 
 " -------------------Plug 'valloric/youcompleteme'----------------------------------
 if exists("s:enable_ycm")  && s:enable_ycm == 1
-    "if !empty(glob("~/.vim/bundle/youcompleteme/third_party/ycmd/examples"))
-    "    let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/youcompleteme/third_party/ycmd/examples/.ycm_extra_conf.py"
-    "endif
-    let g:ycm_global_ycm_extra_conf = "~/.ycm_extra_conf.py"
+    if !empty(glob("~/.vim/bundle/youcompleteme/cpp/ycm/.ycm_extra_conf.py"))
+        let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/youcompleteme/cpp/ycm/.ycm_extra_conf.py"
+    endif
+    if !empty(glob("~/.vim/bundle/youcompleteme/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py"))
+        let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/youcompleteme/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py"
+    endif
+    if !empty(glob("~/.vim/bundle/youcompleteme/third_party/ycmd/examples/.ycm_extra_conf.py"))
+        let g:ycm_global_ycm_extra_conf = "~/.vim/bundle/youcompleteme/third_party/ycmd/examples/.ycm_extra_conf.py"
+    endif
+    if !empty(glob("~/.vim/.ycm_extra_conf.py"))
+        let g:ycm_global_ycm_extra_conf = "~/.vim/.ycm_extra_conf.py"
+    endif
     if !empty(glob(".ycm_extra_conf.py"))
         let g:ycm_global_ycm_extra_conf = ".ycm_extra_conf.py"
     endif
-    " autoload .ycm_extra_conf.py, no need confirm
+
     let g:ycm_confirm_extra_conf=0
-    let g:ycm_complete_in_comments=1  "在注释输入中也能补全
-    let g:ycm_collect_identifiers_from_comments_and_strings = 0  "注释和字符串中的文字也会被收入补全
-    let g:ycm_collect_identifiers_from_tags_files=1 " 开启 YCM 基于标签引擎
-    let g:ycm_min_num_of_chars_for_completion=1 "从第1个键入字符就开始罗列匹配项
-    let g:ycm_cache_omnifunc=0   " 禁止缓存匹配项,每次都重新生成匹配项
+    let g:ycm_complete_in_comments=1
+    let g:ycm_collect_identifiers_from_tags_files=1
+    let g:ycm_min_num_of_chars_for_completion=1
+    let g:ycm_cache_omnifunc=0
     " YCM's identifier completer will seed its identifier database with the keywords of the programming language
-    let g:ycm_seed_identifiers_with_syntax=1   " 语法关键字补全
+    let g:ycm_seed_identifiers_with_syntax=1
     " show the completion menu even when typing inside strings
-    let g:ycm_complete_in_strings = 1  "在字符串输入中也能补全
+    let g:ycm_complete_in_strings = 1
+    " show the completion menu even when typing inside comments
+    let g:ycm_complete_in_comments = 1
     " eclim file type validate conflict with YouCompleteMe
     let g:EclimFileTypeValidate = 0
     " YCM will populate the location list automatically every time it gets new diagnostic data
-    let g:ycm_always_populate_location_list = 0
-    "autocmd CursorMovedI * if pumvisible() == 0|pclose|endif
-    "autocmd InsertLeave * if pumvisible() == 0|pclose|endif
-    "set proview windows close
-    set completeopt=menu,menuone
-    let g:ycm_add_preview_to_completeopt = 0
-    " goto next location list
-    autocmd FileType c,cpp,java nmap [l :lnext<CR>
-    " goto previous location list
-    autocmd FileType c,cpp,java nmap ]l :lprevious<CR>
+    let g:ycm_always_populate_location_list = 1
+    " Let clangd fully control code completion
+    let g:ycm_clangd_uses_ycmd_caching = 1
+
+    augroup ycm_
+        autocmd!
+        " goto next location list
+        " goto previous location list
+        autocmd BufRead,BufNewFile * if count(['cpp','c','python','java','go'], &ft) |
+                    \ nmap <buffer> <C-g> :YcmCompleter GoToDefinitionElseDeclaration <C-R>=expand("<cword>")<CR><CR> |
+                    \ nmap <buffer> <leader>gy :YcmCompleter FixIt<CR> |
+                    \ nnoremap <buffer> <leader>t :YcmCompleter GetType<CR> |
+                    \ nmap <buffer> [l :lnext<CR> |
+                    \ nmap <buffer> ]l :lprevious<CR> | endif
+    augroup END
     " make YCM compatible with UltiSnips (using supertab)
     let g:ycm_key_list_select_completion = ['<C-n>', '<Down>']
     let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
     let g:ycm_max_diagnostics_to_display = 0
     let g:SuperTabDefaultCompletionType = '<C-n>'
-    nmap <C-g> :YcmCompleter GoToDefinitionElseDeclaration <C-R>=expand("<cword>")<CR><CR>
+
+    let g:ycm_use_clangd = 0
+    let g:ycm_add_preview_to_completeopt = 0
+
+    "" autoload .ycm_extra_conf.py, no need confirm
+    "let g:ycm_confirm_extra_conf=0
+    "let g:ycm_complete_in_comments=1  "在注释输入中也能补全
+    "let g:ycm_collect_identifiers_from_comments_and_strings = 0  "注释和字符串中的文字也会被收入补全
+    "let g:ycm_collect_identifiers_from_tags_files=1 " 开启 YCM 基于标签引擎
+    "let g:ycm_min_num_of_chars_for_completion=1 "从第1个键入字符就开始罗列匹配项
+    "let g:ycm_cache_omnifunc=0   " 禁止缓存匹配项,每次都重新生成匹配项
+    "" YCM's identifier completer will seed its identifier database with the keywords of the programming language
+    "let g:ycm_seed_identifiers_with_syntax=1   " 语法关键字补全
+    "" show the completion menu even when typing inside strings
+    "let g:ycm_complete_in_strings = 1  "在字符串输入中也能补全
+    "" eclim file type validate conflict with YouCompleteMe
+    "let g:EclimFileTypeValidate = 0
+    "" YCM will populate the location list automatically every time it gets new diagnostic data
+    "let g:ycm_always_populate_location_list = 0
+    ""autocmd CursorMovedI * if pumvisible() == 0|pclose|endif
+    ""autocmd InsertLeave * if pumvisible() == 0|pclose|endif
+    "" Let clangd fully control code completion
+    ""let g:ycm_clangd_uses_ycmd_caching = 1
+    "" 禁用 clangd
+    "let g:ycm_use_clangd = 0
+    ""set proview windows close
+    "set completeopt=menu,menuone
+    "let g:ycm_add_preview_to_completeopt = 0
+    "" goto next location list
+    "autocmd FileType c,cpp,java nmap [l :lnext<CR>
+    "" goto previous location list
+    "autocmd FileType c,cpp,java nmap ]l :lprevious<CR>
+    "" make YCM compatible with UltiSnips (using supertab)
+    "let g:ycm_key_list_select_completion = ['<C-n>', '<Down>']
+    "let g:ycm_key_list_previous_completion = ['<C-p>', '<Up>']
+    "let g:ycm_max_diagnostics_to_display = 0
+    "let g:SuperTabDefaultCompletionType = '<C-n>'
+    "nmap <C-g> :YcmCompleter GoToDefinitionElseDeclaration <C-R>=expand("<cword>")<CR><CR>
 endif  "s:enable_ycm
+
+" -------------------Plug 'neoclide/coc.nvim'----------------------------------
+if exists("s:enable_coc")  && s:enable_coc == 1
+    " Use <c-space> to trigger completion.
+    inoremap <silent><expr> <c-space> coc#refresh()
+    " Use `[g` and `]g` to navigate diagnostics
+    nmap <silent> [g <Plug>(coc-diagnostic-prev)
+    nmap <silent> ]g <Plug>(coc-diagnostic-next)
+
+    " GoTo code navigation.
+    nmap <silent> <C-g> <Plug>(coc-definition)
+    nmap <silent> <leader>gd <Plug>(coc-definition)
+    nmap <silent> <leader>gt <Plug>(coc-type-definition)
+    nmap <silent> <leader>gi <Plug>(coc-implementation)
+    nmap <silent> <leader>gr <Plug>(coc-references)
+
+    " Apply AutoFix to problem on the current line.
+    nmap <leader>gy <Plug>(coc-fix-current)
+
+    " Use K to show documentation in preview window.
+    nnoremap <silent> <leader>gh :call <SID>show_documentation()<CR>
+    function! s:show_documentation()
+        if (index(['vim','help'], &filetype) >= 0)
+            execute 'h '.expand('<cword>')
+        else
+            call CocActionAsync('doHover')
+        endif
+    endfunction
+    augroup coc_
+        autocmd!
+        " Highlight the symbol and its references when holding the cursor.
+        autocmd CursorHold * silent call CocActionAsync('highlight')
+        " autocmd CursorHold * silent call CocActionAsync('doHover')
+    augroup END
+    " Show all diagnostics.
+    nnoremap <silent> <leader>ga  :<C-u>CocList diagnostics<cr>
+    " rename the current word in the cursor
+    nmap <leader>gn <Plug>(coc-rename)
+    let g:SuperTabDefaultCompletionType = "<c-n>"
+
+    " let g:node_client_debug = 1
+    let g:coc_global_extensions = []
+    let g:coc_global_extensions += ['coc-ultisnips']
+    let g:coc_global_extensions += ['coc-yaml']
+    let g:coc_global_extensions += ['coc-highlight']
+    let g:coc_global_extensions += ['coc-git']
+    let g:coc_global_extensions += ['coc-vimlsp']
+    let g:coc_global_extensions += ['coc-tsserver']
+    if count(g:bundle_groups, 'json')
+        let g:coc_global_extensions += ['coc-json']
+    endif
+    if count(g:bundle_groups, 'java')
+        let g:coc_global_extensions += ['coc-java']
+    endif
+    if count(g:bundle_groups, 'scala')
+        let g:coc_global_extensions += ['coc-metals']
+    endif
+    if count(g:bundle_groups, 'markdown')
+        let g:coc_global_extensions += ['coc-markdownlint']
+    endif
+    if count(g:bundle_groups, 'python')
+        let g:coc_global_extensions += ['coc-jedi']
+    endif
+    if count(g:bundle_groups, 'golang')
+        let g:coc_global_extensions += ['coc-go']
+    endif
+    if count(g:bundle_groups, 'c') || count(g:bundle_groups, 'cpp')
+        let g:coc_global_extensions += ['coc-clangd']
+        call coc#config('clangd.semanticHighlighting', 1)
+        " call coc#config('coc.preferences', {
+        " \ 'timeout': 1000,
+        " \})
+
+        highlight LspCxxHlGroupMemberVariable ctermfg=LightGray  guifg=LightGray
+    endif
+endif
 
 " -----------------Plug 'yggdroot/leaderf'-------------------------
 let g:Lf_ShortcutF = '<C-p>'
 let g:Lf_ShortcutB = '<leader>b'
+let g:Lf_ShowHidden = 1
+let g:Lf_CursorBlink = 0
+let g:Lf_PreviewInPopup = 1
+let g:Lf_WindowPosition = 'popup'
 " let g:Lf_DefaultMode = 'FullPath'
+nmap <leader>b :LeaderfBuffer<CR>
 nmap <leader>lt :LeaderfBufTag<CR>
 nmap <leader>f :LeaderfFunction<CR>
 nmap <leader>ll :LeaderfLine<CR>
@@ -382,15 +526,19 @@ let g:paste_easy_message = 0
 
 " ------------------Plug 'derekwyatt/vim-fswitch'-----------------------------
 " 切换快捷键
-nmap <silent> <Leader>a :FSHere<cr>
-augroup fswitch_cpp
-    " 支持cc结尾的文件
-    au!
-    au BufEnter *.cc let b:fswitchdst  = 'h'
-    au BufEnter *.cc let b:fswitchlocs = 'reg:/src/include/,reg:|src|include/**|,../include'
-    au BufEnter *.h let b:fswitchdst  = 'cpp,cc,C'
-    au BufEnter *.h let b:fswitchlocs = 'reg:/include/src/,reg:/include.*/src/'
-augroup END
+if exists("s:enable_coc")  && s:enable_coc == 1
+    nmap <silent> <Leader>a :CocCommand clangd.switchSourceHeader<cr>
+else
+    nmap <silent> <Leader>a :FSHere<cr>
+    augroup fswitch_cpp
+        " support *.cc
+        autocmd!
+        autocmd BufEnter *.cc let b:fswitchdst  = 'h'
+        autocmd BufEnter *.cc let b:fswitchlocs = 'reg:/src/include/,reg:|src|include/**|,../include'
+        autocmd BufEnter *.h let b:fswitchdst  = 'cpp,cc,C'
+        autocmd BufEnter *.h let b:fswitchlocs = 'reg:/include/src/,reg:/include.*/src/'
+    augroup END
+end
 
 " ------------Plug 'kshenoy/vim-signature'---------------------
 " 高亮显示标记
@@ -431,27 +579,27 @@ let g:gutentags_plus_nomap = 1
 " 自动切换到quickfix窗口
 let g:gutentags_plus_switch = 1
 " 查找符号
-noremap <silent> <leader>gs :GscopeFind s <C-R><C-W><cr>
+noremap <silent> <leader>ggs :GscopeFind s <C-R><C-W><cr>
 " 查找定义
-noremap <silent> <leader>gg :GscopeFind g <C-R><C-W><cr>
+noremap <silent> <leader>ggg :GscopeFind g <C-R><C-W><cr>
 " 查找调用者
-noremap <silent> <leader>gc :GscopeFind c <C-R><C-W><cr>
+noremap <silent> <leader>ggc :GscopeFind c <C-R><C-W><cr>
 " 查找字符串
-noremap <silent> <leader>gt :GscopeFind t <C-R><C-W><cr>
+noremap <silent> <leader>ggt :GscopeFind t <C-R><C-W><cr>
 " 按照egrep规则从标签中查找
-noremap <silent> <leader>ge :GscopeFind e <C-R><C-W><cr>
+noremap <silent> <leader>gge :GscopeFind e <C-R><C-W><cr>
 " 查找文件
-noremap <silent> <leader>gf :GscopeFind f <C-R>=expand("<cfile>")<cr><cr>
+noremap <silent> <leader>ggf :GscopeFind f <C-R>=expand("<cfile>")<cr><cr>
 " 查看include当前文件的文件
-noremap <silent> <leader>gi :GscopeFind i <C-R>=expand("<cfile>")<cr><cr>
+noremap <silent> <leader>ggi :GscopeFind i <C-R>=expand("<cfile>")<cr><cr>
 " 查找当前函数调用的函数
-noremap <silent> <leader>gd :GscopeFind d <C-R><C-W><cr>
+noremap <silent> <leader>ggd :GscopeFind d <C-R><C-W><cr>
 " 查找当前符号赋值位置
-noremap <silent> <leader>ga :GscopeFind a <C-R><C-W><cr>
+noremap <silent> <leader>gga :GscopeFind a <C-R><C-W><cr>
 " 设定项目根目录额外标志：除了 .git/.svn 外，还有 .root 文件
 let g:gutentags_project_root = ['.root']
 " 默认生成的数据文件集中到 ~/.cache/tags 避免污染项目目录
-let g:gutentags_cache_dir = expand('~/.cache/tags')
+let g:gutentags_cache_dir = expand('/opt/lihy/data/.cache/tags')
 " 追踪链接
 let g:gutentags_resolve_symlinks = 1
 " 默认禁用自动生成
@@ -481,11 +629,11 @@ nmap <leader>u :GutentagsUpdate! <CR><CR>
 " ------------------Plug 'alpertuna/vim-header' ----------------
 let g:header_field_filename = 1
 let g:header_field_author = 'Howie Lee'
-let g:header_field_author_email = 'lifower525@google.com'
+let g:header_field_author_email = 'lifower525@gmail.com'
 let g:header_auto_add_header = 0
 let g:header_auto_update_header = 1
 let g:header_field_timestamp_format = '%Y-%m-%d %H:%M:%S'
-let g:header_field_copyright = 'Copyright (c) 2019 Inc. All rights reserved.'
+let g:header_field_copyright = 'Copyright (c) 2019 Meituan Inc. All rights reserved.'
 let g:header_alignment = 1
 let g:header_max_size = 20
 let g:header_field_modified_timestamp = 0
@@ -508,3 +656,19 @@ let g:pymode_lint = 0
 let g:pymode_rope = 0
 let g:pymode_lint_cwindow = 0
 
+" system clipboard
+if exists("s:enable_system_clipboard")  && s:enable_system_clipboard == 1
+    vmap <leader>y "+y
+    vmap <leader>d "+d
+    nmap <leader>p "+p
+    nmap <leader>P "+P
+    vmap <leader>p "+p
+    vmap <leader>P "+P
+else
+    vmap <leader>y "py
+    vmap <leader>d "pd
+    nmap <leader>p "pp
+    nmap <leader>P "pP
+    vmap <leader>p "pp
+    vmap <leader>P "pP
+endif  "s:enable_system_clipboard
