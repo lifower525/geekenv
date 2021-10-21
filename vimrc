@@ -81,9 +81,19 @@ if count(g:bundle_groups, 'base')
     Plug 'kshenoy/vim-signature'
     Plug 'kien/rainbow_parentheses.vim'
     Plug 'jiangmiao/auto-pairs'
+    " git cmd wrapper
+    Plug 'tpope/vim-fugitive'
+    " gitk in vim
+    "Plug 'gregsexton/gitv'
+    " tig in vim
+    Plug 'junegunn/gv.vim'
+    " show git status in toc tree
+    Plug 'Xuyuanp/nerdtree-git-plugin'
     " Plug 'ddollar/nerdcommenter'
     Plug 'chiel92/vim-autoformat'
     "Plug 'airblade/vim-gitgutter'
+    " undo tree
+    Plug 'mbbill/undotree'
     Plug 'roman/golden-ratio'
     Plug 'ervandew/supertab'
     Plug 'alpertuna/vim-header'
@@ -481,6 +491,39 @@ set cmdheight=2
 let g:echodoc#enable_at_startup = 1
 let g:echodoc#enable_force_overwrite = 1
 
+" ---------------Plug 'shougo/gitv'--------------------------
+" gitv
+" let g:Gitv_DoNotMapCtrlKey = 1
+map <leader>gv :Gitv<CR><CR>
+let g:Gitv_WrapLines = 1
+let g:Gitv_TruncateCommitSubjects = 1
+let g:Gitv_OpenPreviewOnLaunch = 1
+let g:Gitv_OpenHorizontal = 1
+
+" gitgutter
+let g:gitgutter_map_keys = 0
+nmap [c <Plug>GitGutterPrevHunk
+nmap ]c <Plug>GitGutterNextHunk
+" let g:gitgutter_eager = 0
+let g:gitgutter_async = 1
+let g:gitgutter_max_signs = 50
+let g:gitgutter_signs = 1
+let g:gitgutter_grep = 'grep --color=never'
+
+
+" undotree
+if has("persistent_undo")
+    " Create dirs
+    call system('mkdir -p ' . "$HOME/.vim/undo")
+    " directory where the undo files will be stored
+    set undodir=$HOME/.vim/undo
+    " turn on the feature
+    set undofile
+    set undolevels=100
+    set undoreload=10000
+endif
+nnoremap <leader>6 :UndotreeToggle<cr>
+
 " --------------Plug 'yggdroot/indentline'-------------------------
 " 开启缩进线
 let g:indentLine_enabled = 1
@@ -565,6 +608,7 @@ nmap <leader>i :Autoformat<CR>
 " Visual模式对选定的文本格式化
 vmap <leader>i :Autoformat<CR>
 " 更改python默认的格式化工具
+set formatoptions=tcqrm
 let g:formatters_python = ["yapf","autopep8"]
 
 
